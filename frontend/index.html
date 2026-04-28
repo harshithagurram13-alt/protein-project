@@ -142,9 +142,9 @@ try{
 
 viewer.clear();
 
-/* BEST FIX: let 3Dmol fetch directly */
+/* FINAL FIX = USE 3DMOL DIRECT PDB QUERY */
 await viewer.addModelFromUrl(
-"https://files.rcsb.org/view/"+id+".pdb",
+"https://3dmol.csb.pitt.edu/data/pdb/" + id + ".pdb",
 "pdb"
 );
 
@@ -192,7 +192,7 @@ viewer.render();
 function stick(){
 
 viewer.setStyle({},{
-stick:{} ,
+stick:{},
 sphere:{scale:0.3}
 });
 
