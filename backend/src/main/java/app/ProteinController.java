@@ -1,13 +1,23 @@
 package app;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.context.annotation.*;
-import org.springframework.web.servlet.config.annotation.*;
+import org.springframework.http.ResponseEntity;
 import java.util.*;
 
 @RestController
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RequestMapping("/protein")
 public class ProteinController {
+
+    @GetMapping("/structure/{id}")
+    public ResponseEntity<String> getStructure(@PathVariable String id) throws Exception {
+        String url = "https://files.rcsb.org/download/" + id.toUpperCase() + ".pdb";
+        java.net.URL rcsb = new java.net.URL(url);
+        java.util.Scanner scanner = new java.util.Scanner(rcsb.openStream()).useDelimiter("\\A");
+        String pdb = scanner.hasNext() ? scanner.next() : "";
+        return ResponseEntity.ok()
+            .header("Content-Type", "text/plain")
+            .body(pdb);
+    }
 
     @GetMapping("/interactions/{a}/{b}")
     public List<Map<String,Object>> getInteractions(
