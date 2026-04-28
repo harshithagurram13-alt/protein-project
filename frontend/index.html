@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Protein Visualizer Pro</title>
+
+<script src="https://3Dmol.org/build/3Dmol-min.js"></script>
+
+<style>
+body{
+margin:0;
+font-family:Arial;
+background:linear-gradient(135deg,#07111f,#0b1020,#111827);
+color:white;
+padding:20px;
+}
+h1{text-align:center;}
+.topbar{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+justify-content:center;
+margin-bottom:20px;
+}
+input{
+padding:12px;
+border:none;
+border-radius:10px;
+width:180px;
+}
+button{
+padding:12px 16px;
+border:none;
+border-radius:10px;
+background:#3b82f6;
+color:white;
+cursor:pointer;
+font-weight:bold;
+}
+.main{
+display:grid;
+grid-template-columns:2fr 1fr;
+gap:20px;
+}
+#viewer{
+height:620px;
+background:black;
+border-radius:18px;
+}
+.panel{
+background:rgba(255,255,255,0.05);
+padding:20px;
+border-radius:18px;
+}
+pre{
+white-space:pre-wrap;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🧬 Protein Visualizer Pro</h1>
+
+<div class="topbar">
+<input id="proteinId" value="1CRN">
+<button onclick="loadProtein()">Load</button>
+<button onclick="cartoon()">Cartoon</button>
+<button onclick="stick()">Ball-Stick</button>
+<button onclick="surface()">Surface</button>
+
+<input id="id1" value="1CRN">
+<input id="id2" value="4HHB">
+<button onclick="interactions()">Interactions</button>
+</div>
+
+<div class="main">
+
+<div id="viewer"></div>
+
+<div class="panel">
+<h2>Protein Info</h2>
+<pre id="info">Loading...</pre>
+
+<h2>Interactions</h2>
+<pre id="result">None</pre>
+</div>
+
+</div>
+
+<script>
+const BASE_URL="https://YOUR-BACKEND-URL.onrender.com";
+
+let viewer;
+
+window.onload=()=>{
+viewer=$3Dmol.createViewer("viewer",{backgroundColor:"black"});
+loadProtein();
+};
+
+async function loadProtein(){
+let id=document.getElementById("proteinId").value;
+
+viewer.clear();
+
+let pdb=await fetch("https://files.rcsb.org/view/"+id+".pdb").then(r=>r.text());
+
+viewer.addModel(pdb,"pdb");
+viewer.setStyle({}, {cartoon:{color:'spectrum'}});
+viewer.zoomTo();
+viewer.render();
+
+try{
+let res=await fetch(BASE_URL+"/protein/"+id);
+let data=await res.json();
+document.getElementById("info").textContent=
+JSON.stringify(data,null,2);
+}catch{
+document.getElementById("info").textContent="Failed";
+}
+}
+
+function cartoon(){
+viewer.setStyle({}, {cartoon:{color:'spectrum'}});
+viewer.render();
+}
+
+function stick(){
+viewer.setStyle({}, {stick:{}});
+viewer.render();
+}
+
+function surface(){
+viewer.addSurface($3Dmol.SurfaceType.VDW);
+viewer.render();
+}
+
+async function interactions(){
+
+let a=id1.value;
+let b=id2.value;
+
+let res=await fetch(BASE_URL+"/protein/interactions/"+a+"/"+b);
+let data=await res.json();
+
+document.getElementById("result").textContent=
+JSON.stringify(data,null,2);
+}
+</script>
+
+</body>
+</html>
