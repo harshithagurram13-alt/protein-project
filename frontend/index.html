@@ -342,7 +342,7 @@ async function loadProtein() {
   setLoading(true, "Fetching " + id + " from RCSB...");
 
   try {
-    let response = await fetch("https://files.rcsb.org/download/" + id + ".pdb");
+    let response = await fetch(BASE_URL + "/protein/structure/" + id);
     if (!response.ok) throw new Error("Not found");
     let pdbData = await response.text();
 
