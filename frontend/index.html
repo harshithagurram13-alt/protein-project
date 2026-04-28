@@ -3,249 +3,437 @@
 <head>
 <meta charset="UTF-8">
 <title>Protein Visualizer Pro</title>
-
 <script src="https://3Dmol.org/build/3Dmol-min.js"></script>
-
 <style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@300;400;600&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0;}
+
 body{
-margin:0;
-font-family:Arial, sans-serif;
-background:linear-gradient(135deg,#07111f,#0b1020,#111827);
-color:white;
-padding:20px;
+  font-family:'Space Grotesk',sans-serif;
+  background:#07111f;
+  color:#e2e8f0;
+  min-height:100vh;
+  padding:28px 24px;
 }
 
 h1{
-text-align:center;
-font-size:42px;
-margin-bottom:25px;
+  text-align:center;
+  font-size:36px;
+  font-weight:600;
+  letter-spacing:-0.5px;
+  margin-bottom:6px;
+  background:linear-gradient(90deg,#60a5fa,#a78bfa,#60a5fa);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+
+.subtitle{
+  text-align:center;
+  font-size:13px;
+  color:#475569;
+  margin-bottom:28px;
+  font-family:'JetBrains Mono',monospace;
+  letter-spacing:0.5px;
 }
 
 .topbar{
-display:flex;
-gap:10px;
-flex-wrap:wrap;
-justify-content:center;
-margin-bottom:20px;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:center;
+  margin-bottom:24px;
+}
+
+.input-group{
+  display:flex;
+  gap:6px;
+  align-items:center;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:12px;
+  padding:6px 10px;
+}
+
+.input-group label{
+  font-size:11px;
+  color:#475569;
+  font-family:'JetBrains Mono',monospace;
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+  white-space:nowrap;
 }
 
 input{
-padding:12px;
-border:none;
-border-radius:10px;
-width:190px;
-font-size:16px;
+  padding:8px 12px;
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:8px;
+  background:rgba(255,255,255,0.05);
+  color:#e2e8f0;
+  font-size:14px;
+  font-family:'JetBrains Mono',monospace;
+  width:110px;
+  text-transform:uppercase;
+  outline:none;
+  transition:border-color 0.2s;
 }
+
+input:focus{border-color:#3b82f6;}
+input::placeholder{text-transform:none; color:#334155; font-family:'Space Grotesk',sans-serif;}
 
 button{
-padding:12px 16px;
-border:none;
-border-radius:10px;
-background:#3b82f6;
-color:white;
-cursor:pointer;
-font-weight:bold;
-font-size:15px;
+  padding:8px 16px;
+  border:none;
+  border-radius:8px;
+  background:#1d4ed8;
+  color:white;
+  cursor:pointer;
+  font-weight:600;
+  font-size:13px;
+  font-family:'Space Grotesk',sans-serif;
+  letter-spacing:0.3px;
+  transition:background 0.15s, transform 0.1s;
+  white-space:nowrap;
 }
 
-button:hover{
-background:#2563eb;
+button:hover{background:#2563eb;}
+button:active{transform:scale(0.97);}
+button:disabled{background:#1e3a5f;color:#475569;cursor:not-allowed;transform:none;}
+
+.style-btn{
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.1);
+  color:#94a3b8;
 }
+.style-btn:hover{background:rgba(255,255,255,0.1);color:#e2e8f0;}
+.style-btn.active{background:#1e3a5f;border-color:#3b82f6;color:#60a5fa;}
 
 .main{
-display:grid;
-grid-template-columns:2fr 1fr;
-gap:20px;
+  display:grid;
+  grid-template-columns:2fr 1fr;
+  gap:20px;
+  max-width:1400px;
+  margin:0 auto;
+}
+
+.viewer-wrapper{
+  position:relative;
+  border-radius:18px;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,0.08);
 }
 
 #viewer{
-height:620px;
-background:black;
-border-radius:18px;
+  height:640px;
+  background:#000;
 }
 
+.viewer-overlay{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  gap:12px;
+  background:rgba(0,0,0,0.7);
+  backdrop-filter:blur(4px);
+  pointer-events:none;
+  opacity:0;
+  transition:opacity 0.3s;
+}
+.viewer-overlay.visible{opacity:1; pointer-events:all;}
+
+.spinner{
+  width:36px;height:36px;
+  border:3px solid rgba(255,255,255,0.1);
+  border-top-color:#3b82f6;
+  border-radius:50%;
+  animation:spin 0.8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.overlay-text{
+  font-size:13px;
+  color:#94a3b8;
+  font-family:'JetBrains Mono',monospace;
+}
+
+.empty-state{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  gap:10px;
+  pointer-events:none;
+}
+.empty-state.hidden{display:none;}
+
+.empty-icon{font-size:48px;opacity:0.15;}
+.empty-label{font-size:13px;color:#1e3a5f;font-family:'JetBrains Mono',monospace;}
+
 .panel{
-background:rgba(255,255,255,0.05);
-padding:20px;
-border-radius:18px;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+
+.card{
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:14px;
+  padding:16px 18px;
+}
+
+.card h2{
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  color:#475569;
+  font-family:'JetBrains Mono',monospace;
+  margin-bottom:12px;
+  padding-bottom:10px;
+  border-bottom:1px solid rgba(255,255,255,0.05);
 }
 
 pre{
-white-space:pre-wrap;
-font-size:15px;
-line-height:1.5;
+  white-space:pre-wrap;
+  font-size:12px;
+  line-height:1.7;
+  font-family:'JetBrains Mono',monospace;
+  color:#64748b;
+  max-height:220px;
+  overflow-y:auto;
+}
+
+pre.loaded{color:#94a3b8;}
+
+.status-dot{
+  display:inline-block;
+  width:7px;height:7px;
+  border-radius:50%;
+  background:#1e3a5f;
+  margin-right:6px;
+  vertical-align:middle;
+  transition:background 0.3s;
+}
+.status-dot.active{background:#22c55e; box-shadow:0 0 6px #22c55e66;}
+
+.current-id{
+  font-family:'JetBrains Mono',monospace;
+  font-size:13px;
+  font-weight:600;
+  color:#60a5fa;
+  margin-left:4px;
+}
+
+.style-controls{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+}
+
+@media(max-width:900px){
+  .main{grid-template-columns:1fr;}
+  #viewer{height:420px;}
 }
 </style>
 </head>
-
 <body>
 
 <h1>🧬 Protein Visualizer Pro</h1>
+<p class="subtitle">Powered by RCSB PDB · 3Dmol.js</p>
 
 <div class="topbar">
+  <div class="input-group">
+    <label>PDB ID</label>
+    <input id="proteinId" placeholder="e.g. 1CRN" maxlength="4">
+    <button id="loadBtn" onclick="loadProtein()">Load</button>
+  </div>
 
-<input id="proteinId" placeholder="Enter PDB ID">
+  <div class="input-group">
+    <label>Style</label>
+    <div class="style-controls">
+      <button class="style-btn active" id="btn-cartoon" onclick="cartoon(this)">Cartoon</button>
+      <button class="style-btn" id="btn-stick" onclick="stick(this)">Ball-Stick</button>
+      <button class="style-btn" id="btn-surface" onclick="surface(this)">Surface</button>
+    </div>
+  </div>
 
-<button onclick="loadProtein()">Load</button>
-<button onclick="cartoon()">Cartoon</button>
-<button onclick="stick()">Ball-Stick</button>
-<button onclick="surface()">Surface</button>
-
-<input id="id1" placeholder="Protein 1">
-<input id="id2" placeholder="Protein 2">
-
-<button onclick="interactions()">Interactions</button>
-
+  <div class="input-group">
+    <label>Interactions</label>
+    <input id="id1" placeholder="Protein 1" maxlength="4">
+    <input id="id2" placeholder="Protein 2" maxlength="4">
+    <button onclick="interactions()">Analyse</button>
+  </div>
 </div>
 
 <div class="main">
+  <div class="viewer-wrapper">
+    <div id="viewer"></div>
 
-<div id="viewer"></div>
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon">🔬</div>
+      <div class="empty-label">Enter a PDB ID to begin</div>
+    </div>
 
-<div class="panel">
+    <div class="viewer-overlay" id="loadingOverlay">
+      <div class="spinner"></div>
+      <div class="overlay-text" id="loadingText">Fetching structure...</div>
+    </div>
+  </div>
 
-<h2>Protein Info</h2>
-<pre id="info">None</pre>
+  <div class="panel">
+    <div class="card">
+      <h2>
+        <span class="status-dot" id="statusDot"></span>
+        Status
+        <span class="current-id" id="currentId"></span>
+      </h2>
+      <pre id="info">No protein loaded.</pre>
+    </div>
 
-<h2>Interactions</h2>
-<pre id="result">None</pre>
-
-</div>
-
+    <div class="card">
+      <h2>Interaction Analysis</h2>
+      <pre id="result">No analysis yet.</pre>
+    </div>
+  </div>
 </div>
 
 <script>
-
-const BASE_URL="https://protein-project-yaqa.onrender.com";
-
+const BASE_URL = "https://protein-project-yaqa.onrender.com";
 let viewer;
+let modelLoaded = false;
 
-window.onload=function(){
-
-viewer=$3Dmol.createViewer(
-document.getElementById("viewer"),
-{backgroundColor:"black"}
-);
-
+window.onload = function() {
+  viewer = $3Dmol.createViewer(
+    document.getElementById("viewer"),
+    { backgroundColor: "black" }
+  );
 };
 
-async function loadProtein(){
-
-let id=document.getElementById("proteinId").value.trim().toUpperCase();
-
-if(id===""){
-alert("Enter Protein ID");
-return;
+function setLoading(on, msg) {
+  const overlay = document.getElementById("loadingOverlay");
+  document.getElementById("loadingText").textContent = msg || "Fetching structure...";
+  overlay.classList.toggle("visible", on);
+  document.getElementById("loadBtn").disabled = on;
 }
 
-try{
-
-viewer.clear();
-
-/* FINAL FIX = USE 3DMOL DIRECT PDB QUERY */
-await viewer.addModelFromUrl(
-"https://3dmol.csb.pitt.edu/data/pdb/" + id + ".pdb",
-"pdb"
-);
-
-viewer.setStyle({},{
-cartoon:{color:"spectrum"}
-});
-
-viewer.zoomTo();
-viewer.render();
-
-}catch(e){
-
-alert("Protein not found");
-return;
-
+function setActiveStyleBtn(el) {
+  document.querySelectorAll(".style-btn").forEach(b => b.classList.remove("active"));
+  if (el) el.classList.add("active");
 }
 
-try{
+async function loadProtein() {
+  let id = document.getElementById("proteinId").value.trim().toUpperCase();
 
-let res=await fetch(BASE_URL+"/protein/"+id);
-let data=await res.json();
+  if (!/^[A-Z0-9]{4}$/.test(id)) {
+    alert("PDB IDs are exactly 4 alphanumeric characters (e.g. 1CRN).");
+    return;
+  }
 
-document.getElementById("info").textContent=
-JSON.stringify(data,null,2);
+  document.getElementById("emptyState").classList.add("hidden");
+  document.getElementById("info").textContent = "Loading...";
+  document.getElementById("info").classList.remove("loaded");
+  setLoading(true, "Fetching " + id + " from RCSB...");
 
-}catch{
+  $.ajax({
+    url: "https://files.rcsb.org/download/" + id + ".pdb",
+    success: function(data) {
+      viewer.clear();
+      viewer.removeAllSurfaces();
+      viewer.addModel(data, "pdb");
+      viewer.setStyle({}, { cartoon: { color: "spectrum" } });
+      viewer.zoomTo();
+      viewer.render();
+      modelLoaded = true;
 
-document.getElementById("info").textContent=
-"Backend fetch failed";
-
+      document.getElementById("statusDot").classList.add("active");
+      document.getElementById("currentId").textContent = id;
+      setActiveStyleBtn(document.getElementById("btn-cartoon"));
+      setLoading(false);
+      fetchBackendInfo(id);
+    },
+    error: function() {
+      setLoading(false);
+      document.getElementById("info").textContent = "Protein not found. Check the PDB ID and try again.";
+      document.getElementById("emptyState").classList.remove("hidden");
+      alert("Could not load \"" + id + "\" — make sure it's a valid PDB ID.");
+    }
+  });
 }
 
+async function fetchBackendInfo(id) {
+  try {
+    let res = await fetch(BASE_URL + "/protein/" + id);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    let data = await res.json();
+    document.getElementById("info").textContent = JSON.stringify(data, null, 2);
+    document.getElementById("info").classList.add("loaded");
+  } catch (e) {
+    document.getElementById("info").textContent = "Backend info unavailable.\n(" + e.message + ")";
+  }
 }
 
-function cartoon(){
-
-viewer.setStyle({},{
-cartoon:{color:"spectrum"}
-});
-
-viewer.render();
-
+function guardLoaded() {
+  if (!modelLoaded) {
+    alert("Load a protein first.");
+    return false;
+  }
+  return true;
 }
 
-function stick(){
-
-viewer.setStyle({},{
-stick:{},
-sphere:{scale:0.3}
-});
-
-viewer.render();
-
+function cartoon(el) {
+  if (!guardLoaded()) return;
+  viewer.removeAllSurfaces();
+  viewer.setStyle({}, { cartoon: { color: "spectrum" } });
+  viewer.render();
+  setActiveStyleBtn(el);
 }
 
-function surface(){
-
-viewer.setStyle({},{
-cartoon:{color:"spectrum"}
-});
-
-viewer.addSurface(
-$3Dmol.SurfaceType.VDW,
-{opacity:0.7}
-);
-
-viewer.render();
-
+function stick(el) {
+  if (!guardLoaded()) return;
+  viewer.removeAllSurfaces();
+  viewer.setStyle({}, { stick: {}, sphere: { scale: 0.3 } });
+  viewer.render();
+  setActiveStyleBtn(el);
 }
 
-async function interactions(){
-
-let a=document.getElementById("id1").value.trim().toUpperCase();
-let b=document.getElementById("id2").value.trim().toUpperCase();
-
-if(a==="" || b===""){
-alert("Enter both Protein IDs");
-return;
+function surface(el) {
+  if (!guardLoaded()) return;
+  viewer.removeAllSurfaces();
+  viewer.setStyle({}, { cartoon: { color: "spectrum" } });
+  viewer.addSurface($3Dmol.SurfaceType.VDW, { opacity: 0.7 });
+  viewer.render();
+  setActiveStyleBtn(el);
 }
 
-try{
+async function interactions() {
+  let a = document.getElementById("id1").value.trim().toUpperCase();
+  let b = document.getElementById("id2").value.trim().toUpperCase();
 
-let res=await fetch(
-BASE_URL+"/protein/interactions/"+a+"/"+b
-);
+  if (!/^[A-Z0-9]{4}$/.test(a) || !/^[A-Z0-9]{4}$/.test(b)) {
+    alert("Enter valid 4-character PDB IDs for both proteins.");
+    return;
+  }
 
-let data=await res.json();
+  document.getElementById("result").textContent = "Analysing interactions...";
+  document.getElementById("result").classList.remove("loaded");
 
-document.getElementById("result").textContent=
-JSON.stringify(data,null,2);
-
-}catch{
-
-document.getElementById("result").textContent=
-"Interaction fetch failed";
-
+  try {
+    let res = await fetch(BASE_URL + "/protein/interactions/" + a + "/" + b);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    let data = await res.json();
+    document.getElementById("result").textContent = JSON.stringify(data, null, 2);
+    document.getElementById("result").classList.add("loaded");
+  } catch (e) {
+    document.getElementById("result").textContent = "Interaction fetch failed.\n(" + e.message + ")";
+  }
 }
-
-}
-
 </script>
-
 </body>
 </html>
