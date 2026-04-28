@@ -35,7 +35,6 @@ border:none;
 border-radius:10px;
 width:190px;
 font-size:16px;
-outline:none;
 }
 
 button{
@@ -69,11 +68,6 @@ border-radius:18px;
 background:rgba(255,255,255,0.05);
 padding:20px;
 border-radius:18px;
-}
-
-h2{
-margin-top:0;
-margin-bottom:10px;
 }
 
 pre{
@@ -148,17 +142,11 @@ try{
 
 viewer.clear();
 
-let response=await fetch(
-"https://files.rcsb.org/view/"+id+".pdb"
+/* BEST FIX: let 3Dmol fetch directly */
+await viewer.addModelFromUrl(
+"https://files.rcsb.org/view/"+id+".pdb",
+"pdb"
 );
-
-if(!response.ok){
-throw new Error();
-}
-
-let pdb=await response.text();
-
-viewer.addModel(pdb,"pdb");
 
 viewer.setStyle({},{
 cartoon:{color:"spectrum"}
@@ -167,7 +155,7 @@ cartoon:{color:"spectrum"}
 viewer.zoomTo();
 viewer.render();
 
-}catch{
+}catch(e){
 
 alert("Protein not found");
 return;
@@ -204,7 +192,7 @@ viewer.render();
 function stick(){
 
 viewer.setStyle({},{
-stick:{},
+stick:{} ,
 sphere:{scale:0.3}
 });
 
