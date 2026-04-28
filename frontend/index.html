@@ -341,29 +341,27 @@ async function loadProtein() {
   document.getElementById("info").classList.remove("loaded");
   setLoading(true, "Fetching " + id + " from RCSB...");
 
-  $.ajax({
-    url: "https://files.rcsb.org/download/" + id + ".pdb",
-    success: function(data) {
-      viewer.clear();
-      viewer.removeAllSurfaces();
-      viewer.addModel(data, "pdb");
-      viewer.setStyle({}, { cartoon: { color: "spectrum" } });
-      viewer.zoomTo();
-      viewer.render();
-      modelLoaded = true;
+  viewer.clear();
+  viewer.removeAllSurfaces();
 
-      document.getElementById("statusDot").classList.add("active");
-      document.getElementById("currentId").textContent = id;
-      setActiveStyleBtn(document.getElementById("btn-cartoon"));
-      setLoading(false);
-      fetchBackendInfo(id);
-    },
-    error: function() {
+  $3Dmol.download("pdb:" + id, viewer, { multimodel: false }, function(m) {
+    if (!m) {
       setLoading(false);
       document.getElementById("info").textContent = "Protein not found. Check the PDB ID and try again.";
       document.getElementById("emptyState").classList.remove("hidden");
       alert("Could not load \"" + id + "\" — make sure it's a valid PDB ID.");
+      return;
     }
+    viewer.setStyle({}, { cartoon: { color: "spectrum" } });
+    viewer.zoomTo();
+    viewer.render();
+    modelLoaded = true;
+
+    document.getElementById("statusDot").classList.add("active");
+    document.getElementById("currentId").textContent = id;
+    setActiveStyleBtn(document.getElementById("btn-cartoon"));
+    setLoading(false);
+    fetchBackendInfo(id);
   });
 }
 
