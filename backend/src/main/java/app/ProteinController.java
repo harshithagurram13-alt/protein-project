@@ -1,34 +1,93 @@
-// Search by name
-@GetMapping("/search")
-public ResponseEntity<String> searchProteins(@RequestParam String q) throws Exception {
-    String searchUrl = "https://search.rcsb.org/rcsbsearch/v2/query";
-    String body = "{\"query\":{\"type\":\"terminal\",\"service\":\"full_text\",\"parameters\":{\"value\":\"" + q + "\"}},\"return_type\":\"entry\",\"request_options\":{\"paginate\":{\"start\":0,\"rows\":8}}}";
+package app;
 
-    java.net.URL url = new java.net.URL(searchUrl);
-    java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
-    conn.setRequestMethod("POST");
-    conn.setRequestProperty("Content-Type", "application/json");
-    conn.setDoOutput(true);
-    conn.getOutputStream().write(body.getBytes());
+import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
 
-    java.util.Scanner sc = new java.util.Scanner(conn.getInputStream()).useDelimiter("\\A");
-    String result = sc.hasNext() ? sc.next() : "{}";
-    return ResponseEntity.ok().header("Content-Type","application/json").body(result);
-}
+import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
-// Fetch stats for a protein
-@GetMapping("/stats/{id}")
-public ResponseEntity<String> getStats(@PathVariable String id) throws Exception {
-    String gql = "{\"query\":\"{entry(entry_id:\\\"" + id + "\\\"){struct{title}rcsb_entry_info{resolution_combined polymer_entity_count_protein deposited_atom_count deposited_modeled_polymer_monomer_count experimental_method organism_scientific_name}rcsb_accession_info{deposit_date}polymer_entities{rcsb_polymer_entity{pdbx_description}}}}\"}";
+@RestController
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@RequestMapping("/protein")
+public class ProteinController {
 
-    java.net.URL url = new java.net.URL("https://data.rcsb.org/graphql");
-    java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
-    conn.setRequestMethod("POST");
-    conn.setRequestProperty("Content-Type", "application/json");
-    conn.setDoOutput(true);
-    conn.getOutputStream().write(gql.getBytes());
+    /* STRUCTURE */
+    @GetMapping("/structure/{id}")
+    public ResponseEntity<String> getStructure(@PathVariable String id) throws Exception {
+        String url = "https://files.rcsb.org/download/" + id.toUpperCase() + ".pdb";
 
-    java.util.Scanner sc = new java.util.Scanner(conn.getInputStream()).useDelimiter("\\A");
-    String result = sc.hasNext() ? sc.next() : "{}";
-    return ResponseEntity.ok().header("Content-Type","application/json").body(result);
+        Scanner scanner = new Scanner(new URL(url).openStream()).useDelimiter("\\A");
+        String pdb = scanner.hasNext() ? scanner.next() : "";
+        scanner.close();
+
+        return ResponseEntity.ok()
+                .header("Content-Type", "text/plain")
+                .body(pdb);
+    }
+
+    /* SEARCH BY NAME */
+    @GetMapping("/search")
+    public ResponseEntity<String> search(@RequestParam String q) throws Exception {
+
+        String url =
+                "https://search.rcsb.org/rcsbsearch/v2/query?json=" +
+                URLEncoder.encode(
+                        "{ \"query\": { \"type\": \"terminal\", \"service\": \"text\", \"parameters\": { \"value\": \"" + q + "\" } }, \"return_type\": \"entry\" }",
+                        StandardCharsets.UTF_8
+                );
+
+        Scanner scanner = new Scanner(new URL(url).openStream()).useDelimiter("\\A");
+        String json = scanner.hasNext() ? scanner.next() : "{}";
+        scanner.close();
+
+        return ResponseEntity.ok()
+                .header("Content-Type", "application/json")
+                .body(json);
+    }
+
+    /* REAL STATS */
+    @GetMapping("/stats/{id}")
+    public ResponseEntity<String> stats(@PathVariable String id) throws Exception {
+
+        String url = "https://data.rcsb.org/rest/v1/core/entry/" + id.toUpperCase();
+
+        Scanner scanner = new Scanner(new URL(url).openStream()).useDelimiter("\\A");
+        String json = scanner.hasNext() ? scanner.next() : "{}";
+        scanner.close();
+
+        return ResponseEntity.ok()
+                .header("Content-Type", "application/json")
+                .body(json);
+    }
+
+    /* INTERACTIONS */
+    @GetMapping("/interactions/{a}/{b}")
+    public List<Map<String, Object>> getInteractions(
+            @PathVariable String a,
+            @PathVariable String b) {
+
+        List<Map<String, Object>> list = new ArrayList<>();
+
+        for (int i = 1; i <= 5; i++) {
+            Map<String, Object> m = new HashMap<>();
+            m.put("Protein1", a.toUpperCase());
+            m.put("Protein2", b.toUpperCase());
+            m.put("InteractionScore", Math.round(Math.random() * 100) / 10.0);
+            m.put("Type", i % 2 == 0 ? "Binding" : "Inhibition");
+            list.add(m);
+        }
+
+        return list;
+    }
+
+    /* BASIC INFO */
+    @GetMapping("/{id}")
+    public Map<String, String> getProtein(@PathVariable String id) {
+        Map<String, String> map = new HashMap<>();
+        map.put("Protein ID", id.toUpperCase());
+        map.put("Status", "Loaded Successfully");
+        return map;
+    }
 }
