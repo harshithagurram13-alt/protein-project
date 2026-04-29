@@ -43,7 +43,7 @@ h1{
   gap:10px;
   flex-wrap:wrap;
   justify-content:center;
-  margin-bottom:24px;
+  margin-bottom:16px;
 }
 
 .input-group{
@@ -65,6 +65,88 @@ h1{
   white-space:nowrap;
 }
 
+.search-row{
+  display:flex;
+  justify-content:center;
+  margin-bottom:20px;
+}
+
+.search-box{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:12px;
+  padding:8px 14px;
+  width:100%;
+  max-width:620px;
+}
+
+.search-box label{
+  font-size:11px;
+  color:#475569;
+  font-family:'JetBrains Mono',monospace;
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+  white-space:nowrap;
+}
+
+#searchInput{
+  flex:1;
+  padding:8px 12px;
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:8px;
+  background:rgba(255,255,255,0.05);
+  color:#e2e8f0;
+  font-size:14px;
+  font-family:'Space Grotesk',sans-serif;
+  outline:none;
+  transition:border-color 0.2s;
+  min-width:200px;
+}
+#searchInput:focus{border-color:#3b82f6;}
+#searchInput::placeholder{color:#334155;}
+
+.search-wrapper{
+  position:relative;
+  flex:1;
+}
+
+.search-results{
+  position:absolute;
+  z-index:100;
+  background:#0f1f35;
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:10px;
+  margin-top:4px;
+  width:100%;
+  max-height:260px;
+  overflow-y:auto;
+  box-shadow:0 8px 32px rgba(0,0,0,0.5);
+  display:none;
+}
+.search-results.visible{display:block;}
+
+.search-result-item{
+  padding:10px 14px;
+  cursor:pointer;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  transition:background 0.15s;
+}
+.search-result-item:hover{background:rgba(59,130,246,0.15);}
+.search-result-item:last-child{border-bottom:none;}
+
+.result-id{
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;
+  font-weight:600;
+  color:#60a5fa;
+  margin-right:8px;
+}
+.result-title{font-size:12px;color:#94a3b8;}
+.result-org{font-size:11px;color:#475569;margin-top:2px;}
+
 input{
   padding:8px 12px;
   border:1px solid rgba(255,255,255,0.1);
@@ -78,9 +160,8 @@ input{
   outline:none;
   transition:border-color 0.2s;
 }
-
 input:focus{border-color:#3b82f6;}
-input::placeholder{text-transform:none; color:#334155; font-family:'Space Grotesk',sans-serif;}
+input::placeholder{text-transform:none;color:#334155;font-family:'Space Grotesk',sans-serif;}
 
 button{
   padding:8px 16px;
@@ -93,149 +174,62 @@ button{
   font-size:13px;
   font-family:'Space Grotesk',sans-serif;
   letter-spacing:0.3px;
-  transition:background 0.15s, transform 0.1s;
+  transition:background 0.15s,transform 0.1s;
   white-space:nowrap;
 }
-
 button:hover{background:#2563eb;}
 button:active{transform:scale(0.97);}
 button:disabled{background:#1e3a5f;color:#475569;cursor:not-allowed;transform:none;}
 
-.style-btn{
-  background:rgba(255,255,255,0.05);
-  border:1px solid rgba(255,255,255,0.1);
-  color:#94a3b8;
-}
+.style-btn{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#94a3b8;}
 .style-btn:hover{background:rgba(255,255,255,0.1);color:#e2e8f0;}
 .style-btn.active{background:#1e3a5f;border-color:#3b82f6;color:#60a5fa;}
 
-.main{
-  display:grid;
-  grid-template-columns:2fr 1fr;
-  gap:20px;
-  max-width:1400px;
-  margin:0 auto;
-}
+.main{display:grid;grid-template-columns:2fr 1fr;gap:20px;max-width:1400px;margin:0 auto;}
 
-.viewer-wrapper{
-  position:relative;
-  border-radius:18px;
-  overflow:hidden;
-  border:1px solid rgba(255,255,255,0.08);
-}
-
-#viewer{
-  height:640px;
-  background:#000;
-}
+.viewer-wrapper{position:relative;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);}
+#viewer{height:640px;background:#000;}
 
 .viewer-overlay{
-  position:absolute;
-  inset:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  flex-direction:column;
-  gap:12px;
-  background:rgba(0,0,0,0.7);
-  backdrop-filter:blur(4px);
-  pointer-events:none;
-  opacity:0;
-  transition:opacity 0.3s;
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:12px;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);
+  pointer-events:none;opacity:0;transition:opacity 0.3s;
 }
-.viewer-overlay.visible{opacity:1; pointer-events:all;}
+.viewer-overlay.visible{opacity:1;pointer-events:all;}
 
-.spinner{
-  width:36px;height:36px;
-  border:3px solid rgba(255,255,255,0.1);
-  border-top-color:#3b82f6;
-  border-radius:50%;
-  animation:spin 0.8s linear infinite;
-}
+.spinner{width:36px;height:36px;border:3px solid rgba(255,255,255,0.1);border-top-color:#3b82f6;border-radius:50%;animation:spin 0.8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
+.overlay-text{font-size:13px;color:#94a3b8;font-family:'JetBrains Mono',monospace;}
 
-.overlay-text{
-  font-size:13px;
-  color:#94a3b8;
-  font-family:'JetBrains Mono',monospace;
-}
-
-.empty-state{
-  position:absolute;
-  inset:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  flex-direction:column;
-  gap:10px;
-  pointer-events:none;
-}
+.empty-state{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;pointer-events:none;}
 .empty-state.hidden{display:none;}
-
 .empty-icon{font-size:48px;opacity:0.15;}
 .empty-label{font-size:13px;color:#1e3a5f;font-family:'JetBrains Mono',monospace;}
 
-.panel{
-  display:flex;
-  flex-direction:column;
-  gap:16px;
-}
+.panel{display:flex;flex-direction:column;gap:16px;}
 
-.card{
-  background:rgba(255,255,255,0.03);
-  border:1px solid rgba(255,255,255,0.07);
-  border-radius:14px;
-  padding:16px 18px;
-}
+.card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:16px 18px;}
+.card h2{font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#475569;font-family:'JetBrains Mono',monospace;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.05);}
 
-.card h2{
-  font-size:12px;
-  font-weight:600;
-  letter-spacing:1px;
-  text-transform:uppercase;
-  color:#475569;
-  font-family:'JetBrains Mono',monospace;
-  margin-bottom:12px;
-  padding-bottom:10px;
-  border-bottom:1px solid rgba(255,255,255,0.05);
-}
-
-pre{
-  white-space:pre-wrap;
-  font-size:12px;
-  line-height:1.7;
-  font-family:'JetBrains Mono',monospace;
-  color:#64748b;
-  max-height:220px;
-  overflow-y:auto;
-}
-
+pre{white-space:pre-wrap;font-size:12px;line-height:1.7;font-family:'JetBrains Mono',monospace;color:#64748b;max-height:180px;overflow-y:auto;}
 pre.loaded{color:#94a3b8;}
 
-.status-dot{
-  display:inline-block;
-  width:7px;height:7px;
-  border-radius:50%;
-  background:#1e3a5f;
-  margin-right:6px;
-  vertical-align:middle;
-  transition:background 0.3s;
-}
-.status-dot.active{background:#22c55e; box-shadow:0 0 6px #22c55e66;}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;}
+.stat-item{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:10px 12px;}
+.stat-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:#475569;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;}
+.stat-value{font-size:14px;font-weight:600;color:#e2e8f0;}
+.stat-value.highlight{color:#60a5fa;}
 
-.current-id{
-  font-family:'JetBrains Mono',monospace;
-  font-size:13px;
-  font-weight:600;
-  color:#60a5fa;
-  margin-left:4px;
-}
+.protein-title{font-size:13px;color:#94a3b8;line-height:1.5;margin-bottom:8px;font-style:italic;}
+.protein-org{font-size:11px;color:#475569;font-family:'JetBrains Mono',monospace;margin-bottom:10px;}
 
-.style-controls{
-  display:flex;
-  gap:6px;
-  flex-wrap:wrap;
-}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-family:'JetBrains Mono',monospace;font-weight:600;margin-right:4px;margin-bottom:4px;background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.2);}
+
+.status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#1e3a5f;margin-right:6px;vertical-align:middle;transition:background 0.3s;}
+.status-dot.active{background:#22c55e;box-shadow:0 0 6px #22c55e66;}
+
+.current-id{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:#60a5fa;margin-left:4px;}
+.style-controls{display:flex;gap:6px;flex-wrap:wrap;}
 
 @media(max-width:900px){
   .main{grid-template-columns:1fr;}
@@ -247,6 +241,16 @@ pre.loaded{color:#94a3b8;}
 
 <h1>🧬 Protein Visualizer Pro</h1>
 <p class="subtitle">Powered by RCSB PDB · 3Dmol.js</p>
+
+<div class="search-row">
+  <div class="search-box">
+    <label>🔍 Search</label>
+    <div class="search-wrapper">
+      <input type="text" id="searchInput" placeholder="Search by name (e.g. insulin, crambin, hemoglobin...)" autocomplete="off" oninput="onSearchInput()" onkeydown="onSearchKey(event)">
+      <div class="search-results" id="searchResults"></div>
+    </div>
+  </div>
+</div>
 
 <div class="topbar">
   <div class="input-group">
@@ -275,12 +279,10 @@ pre.loaded{color:#94a3b8;}
 <div class="main">
   <div class="viewer-wrapper">
     <div id="viewer"></div>
-
     <div class="empty-state" id="emptyState">
       <div class="empty-icon">🔬</div>
-      <div class="empty-label">Enter a PDB ID to begin</div>
+      <div class="empty-label">Search or enter a PDB ID to begin</div>
     </div>
-
     <div class="viewer-overlay" id="loadingOverlay">
       <div class="spinner"></div>
       <div class="overlay-text" id="loadingText">Fetching structure...</div>
@@ -291,10 +293,12 @@ pre.loaded{color:#94a3b8;}
     <div class="card">
       <h2>
         <span class="status-dot" id="statusDot"></span>
-        Status
+        Structure Info
         <span class="current-id" id="currentId"></span>
       </h2>
-      <pre id="info">No protein loaded.</pre>
+      <div id="statsContent">
+        <pre style="color:#334155;">Load a protein to see its stats.</pre>
+      </div>
     </div>
 
     <div class="card">
@@ -308,26 +312,94 @@ pre.loaded{color:#94a3b8;}
 const BASE_URL = "https://protein-project-yaqa.onrender.com";
 let viewer;
 let modelLoaded = false;
+let searchTimeout = null;
 
 window.onload = function() {
   viewer = $3Dmol.createViewer(
     document.getElementById("viewer"),
     { backgroundColor: "black" }
   );
+  document.addEventListener("click", function(e) {
+    if (!e.target.closest(".search-wrapper")) {
+      document.getElementById("searchResults").classList.remove("visible");
+    }
+  });
 };
 
-function setLoading(on, msg) {
-  const overlay = document.getElementById("loadingOverlay");
-  document.getElementById("loadingText").textContent = msg || "Fetching structure...";
-  overlay.classList.toggle("visible", on);
-  document.getElementById("loadBtn").disabled = on;
+/* ── NAME SEARCH ── */
+function onSearchInput() {
+  clearTimeout(searchTimeout);
+  const q = document.getElementById("searchInput").value.trim();
+  if (q.length < 2) {
+    document.getElementById("searchResults").classList.remove("visible");
+    return;
+  }
+  searchTimeout = setTimeout(() => searchProteins(q), 350);
 }
 
-function setActiveStyleBtn(el) {
-  document.querySelectorAll(".style-btn").forEach(b => b.classList.remove("active"));
-  if (el) el.classList.add("active");
+function onSearchKey(e) {
+  if (e.key === "Escape") document.getElementById("searchResults").classList.remove("visible");
 }
 
+async function searchProteins(query) {
+  try {
+    const body = {
+      query: {
+        type: "terminal",
+        service: "full_text",
+        parameters: { value: query }
+      },
+      return_type: "entry",
+      request_options: { paginate: { start: 0, rows: 8 } }
+    };
+    const res = await fetch("https://search.rcsb.org/rcsbsearch/v2/query", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    const ids = (data.result_set || []).map(r => r.identifier);
+    if (ids.length === 0) { showSearchResults([]); return; }
+
+    const infoRes = await fetch(
+      "https://data.rcsb.org/graphql?query=" +
+      encodeURIComponent(`{entries(entry_ids:${JSON.stringify(ids)}){rcsb_id struct{title} rcsb_entry_info{organism_scientific_name}}}`)
+    );
+    const infoData = await infoRes.json();
+    showSearchResults(infoData.data.entries || []);
+  } catch(e) {
+    console.error("Search failed", e);
+  }
+}
+
+function showSearchResults(entries) {
+  const box = document.getElementById("searchResults");
+  if (entries.length === 0) {
+    box.innerHTML = `<div class="search-result-item"><span class="result-title">No results found</span></div>`;
+    box.classList.add("visible");
+    return;
+  }
+  box.innerHTML = entries.map(e => `
+    <div class="search-result-item" onclick="selectSearchResult('${e.rcsb_id}')">
+      <div>
+        <span class="result-id">${e.rcsb_id}</span>
+        <span class="result-title">${(e.struct?.title || "").substring(0,60)}${(e.struct?.title?.length||0)>60?"...":""}</span>
+      </div>
+      <div class="result-org">${e.rcsb_entry_info?.organism_scientific_name || ""}</div>
+    </div>
+  `).join("");
+  box.classList.add("visible");
+}
+
+function selectSearchResult(id) {
+  document.getElementById("proteinId").value = id;
+  document.getElementById("searchInput").value = "";
+  document.getElementById("searchResults").classList.remove("visible");
+  loadProtein();
+}
+
+/* ── LOAD PROTEIN ── */
 async function loadProtein() {
   let id = document.getElementById("proteinId").value.trim().toUpperCase();
 
@@ -337,8 +409,7 @@ async function loadProtein() {
   }
 
   document.getElementById("emptyState").classList.add("hidden");
-  document.getElementById("info").textContent = "Loading...";
-  document.getElementById("info").classList.remove("loaded");
+  document.getElementById("statsContent").innerHTML = `<pre style="color:#334155;">Loading...</pre>`;
   setLoading(true, "Fetching " + id + " from RCSB...");
 
   try {
@@ -358,33 +429,102 @@ async function loadProtein() {
     document.getElementById("currentId").textContent = id;
     setActiveStyleBtn(document.getElementById("btn-cartoon"));
     setLoading(false);
-    fetchBackendInfo(id);
+    fetchRCSBStats(id);
 
   } catch (e) {
     setLoading(false);
-    document.getElementById("info").textContent = "Protein not found. Check the PDB ID and try again.";
+    document.getElementById("statsContent").innerHTML = `<pre style="color:#ef4444;">Protein not found.</pre>`;
     document.getElementById("emptyState").classList.remove("hidden");
     alert("Could not load \"" + id + "\" — make sure it's a valid PDB ID.");
   }
 }
 
-async function fetchBackendInfo(id) {
+/* ── REAL STATS FROM RCSB GRAPHQL ── */
+async function fetchRCSBStats(id) {
   try {
-    let res = await fetch(BASE_URL + "/protein/" + id);
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    let data = await res.json();
-    document.getElementById("info").textContent = JSON.stringify(data, null, 2);
-    document.getElementById("info").classList.add("loaded");
-  } catch (e) {
-    document.getElementById("info").textContent = "Backend info unavailable.\n(" + e.message + ")";
+    const query = `{entry(entry_id:"${id}"){
+      struct{title}
+      rcsb_entry_info{
+        resolution_combined
+        polymer_entity_count_protein
+        deposited_atom_count
+        deposited_modeled_polymer_monomer_count
+        experimental_method
+        organism_scientific_name
+      }
+      rcsb_accession_info{deposit_date}
+      polymer_entities{
+        rcsb_polymer_entity{pdbx_description}
+      }
+    }}`;
+
+    const res = await fetch("https://data.rcsb.org/graphql?query=" + encodeURIComponent(query));
+    const data = await res.json();
+    const e = data.data.entry;
+    const info = e.rcsb_entry_info;
+
+    const resolution = info.resolution_combined ? info.resolution_combined[0].toFixed(2) + " Å" : "N/A";
+    const chains = info.polymer_entity_count_protein ?? "N/A";
+    const atoms = info.deposited_atom_count?.toLocaleString() ?? "N/A";
+    const residues = info.deposited_modeled_polymer_monomer_count?.toLocaleString() ?? "N/A";
+    const method = (info.experimental_method || ["N/A"])[0];
+    const organism = info.organism_scientific_name ?? "Unknown";
+    const deposited = e.rcsb_accession_info?.deposit_date?.substring(0,10) ?? "N/A";
+    const title = e.struct?.title ?? "";
+
+    const tags = (e.polymer_entities || []).map(p =>
+      `<span class="tag">${(p.rcsb_polymer_entity?.pdbx_description || "").substring(0,28)}</span>`
+    ).join("");
+
+    document.getElementById("statsContent").innerHTML = `
+      <div class="protein-title">${title}</div>
+      <div class="protein-org">🦠 ${organism}</div>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-label">Resolution</div>
+          <div class="stat-value highlight">${resolution}</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Chains</div>
+          <div class="stat-value">${chains}</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Residues</div>
+          <div class="stat-value">${residues}</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Atoms</div>
+          <div class="stat-value">${atoms}</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Method</div>
+          <div class="stat-value" style="font-size:11px">${method}</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Deposited</div>
+          <div class="stat-value" style="font-size:11px">${deposited}</div>
+        </div>
+      </div>
+      ${tags ? `<div style="margin-top:10px">${tags}</div>` : ""}
+    `;
+  } catch(err) {
+    document.getElementById("statsContent").innerHTML = `<pre style="color:#475569;">Stats unavailable.</pre>`;
   }
 }
 
+function setLoading(on, msg) {
+  document.getElementById("loadingText").textContent = msg || "Fetching structure...";
+  document.getElementById("loadingOverlay").classList.toggle("visible", on);
+  document.getElementById("loadBtn").disabled = on;
+}
+
+function setActiveStyleBtn(el) {
+  document.querySelectorAll(".style-btn").forEach(b => b.classList.remove("active"));
+  if (el) el.classList.add("active");
+}
+
 function guardLoaded() {
-  if (!modelLoaded) {
-    alert("Load a protein first.");
-    return false;
-  }
+  if (!modelLoaded) { alert("Load a protein first."); return false; }
   return true;
 }
 
