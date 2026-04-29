@@ -92,8 +92,13 @@ h1{
   white-space:nowrap;
 }
 
-#searchInput{
+.search-wrapper{
+  position:relative;
   flex:1;
+}
+
+#searchInput{
+  width:100%;
   padding:8px 12px;
   border:1px solid rgba(255,255,255,0.1);
   border-radius:8px;
@@ -103,15 +108,9 @@ h1{
   font-family:'Space Grotesk',sans-serif;
   outline:none;
   transition:border-color 0.2s;
-  min-width:200px;
 }
 #searchInput:focus{border-color:#3b82f6;}
 #searchInput::placeholder{color:#334155;}
-
-.search-wrapper{
-  position:relative;
-  flex:1;
-}
 
 .search-results{
   position:absolute;
@@ -222,12 +221,10 @@ pre.loaded{color:#94a3b8;}
 
 .protein-title{font-size:13px;color:#94a3b8;line-height:1.5;margin-bottom:8px;font-style:italic;}
 .protein-org{font-size:11px;color:#475569;font-family:'JetBrains Mono',monospace;margin-bottom:10px;}
-
 .tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-family:'JetBrains Mono',monospace;font-weight:600;margin-right:4px;margin-bottom:4px;background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.2);}
 
 .status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#1e3a5f;margin-right:6px;vertical-align:middle;transition:background 0.3s;}
 .status-dot.active{background:#22c55e;box-shadow:0 0 6px #22c55e66;}
-
 .current-id{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:#60a5fa;margin-left:4px;}
 .style-controls{display:flex;gap:6px;flex-wrap:wrap;}
 
@@ -326,7 +323,7 @@ window.onload = function() {
   });
 };
 
-/* ── NAME SEARCH ── */
+/* ── NAME SEARCH (routed through backend) ── */
 function onSearchInput() {
   clearTimeout(searchTimeout);
   const q = document.getElementById("searchInput").value.trim();
@@ -343,31 +340,27 @@ function onSearchKey(e) {
 
 async function searchProteins(query) {
   try {
-    const body = {
-      query: {
-        type: "terminal",
-        service: "full_text",
-        parameters: { value: query }
-      },
-      return_type: "entry",
-      request_options: { paginate: { start: 0, rows: 8 } }
-    };
-    const res = await fetch("https://search.rcsb.org/rcsbsearch/v2/query", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
-    });
+    const res = await fetch(BASE_URL + "/protein/search?q=" + encodeURIComponent(query));
     if (!res.ok) return;
     const data = await res.json();
     const ids = (data.result_set || []).map(r => r.identifier);
     if (ids.length === 0) { showSearchResults([]); return; }
 
-    const infoRes = await fetch(
-      "https://data.rcsb.org/graphql?query=" +
-      encodeURIComponent(`{entries(entry_ids:${JSON.stringify(ids)}){rcsb_id struct{title} rcsb_entry_info{organism_scientific_name}}}`)
+    const titleResults = await Promise.all(
+      ids.slice(0, 8).map(async id => {
+        try {
+          const r = await fetch(BASE_URL + "/protein/stats/" + id);
+          const d = await r.json();
+          const entry = d.data?.entry;
+          return {
+            rcsb_id: id,
+            title: entry?.struct?.title || "",
+            org: entry?.rcsb_entry_info?.organism_scientific_name || ""
+          };
+        } catch { return { rcsb_id: id, title: "", org: "" }; }
+      })
     );
-    const infoData = await infoRes.json();
-    showSearchResults(infoData.data.entries || []);
+    showSearchResults(titleResults);
   } catch(e) {
     console.error("Search failed", e);
   }
@@ -384,9 +377,9 @@ function showSearchResults(entries) {
     <div class="search-result-item" onclick="selectSearchResult('${e.rcsb_id}')">
       <div>
         <span class="result-id">${e.rcsb_id}</span>
-        <span class="result-title">${(e.struct?.title || "").substring(0,60)}${(e.struct?.title?.length||0)>60?"...":""}</span>
+        <span class="result-title">${(e.title || "").substring(0,60)}${(e.title?.length||0)>60?"...":""}</span>
       </div>
-      <div class="result-org">${e.rcsb_entry_info?.organism_scientific_name || ""}</div>
+      <div class="result-org">${e.org || ""}</div>
     </div>
   `).join("");
   box.classList.add("visible");
@@ -429,7 +422,7 @@ async function loadProtein() {
     document.getElementById("currentId").textContent = id;
     setActiveStyleBtn(document.getElementById("btn-cartoon"));
     setLoading(false);
-    fetchRCSBStats(id);
+    fetchStats(id);
 
   } catch (e) {
     setLoading(false);
@@ -439,30 +432,16 @@ async function loadProtein() {
   }
 }
 
-/* ── REAL STATS FROM RCSB GRAPHQL ── */
-async function fetchRCSBStats(id) {
+/* ── STATS (routed through backend) ── */
+async function fetchStats(id) {
   try {
-    const query = `{entry(entry_id:"${id}"){
-      struct{title}
-      rcsb_entry_info{
-        resolution_combined
-        polymer_entity_count_protein
-        deposited_atom_count
-        deposited_modeled_polymer_monomer_count
-        experimental_method
-        organism_scientific_name
-      }
-      rcsb_accession_info{deposit_date}
-      polymer_entities{
-        rcsb_polymer_entity{pdbx_description}
-      }
-    }}`;
-
-    const res = await fetch("https://data.rcsb.org/graphql?query=" + encodeURIComponent(query));
+    const res = await fetch(BASE_URL + "/protein/stats/" + id);
+    if (!res.ok) throw new Error("HTTP " + res.status);
     const data = await res.json();
-    const e = data.data.entry;
-    const info = e.rcsb_entry_info;
+    const e = data.data?.entry;
+    if (!e) throw new Error("No data");
 
+    const info = e.rcsb_entry_info || {};
     const resolution = info.resolution_combined ? info.resolution_combined[0].toFixed(2) + " Å" : "N/A";
     const chains = info.polymer_entity_count_protein ?? "N/A";
     const atoms = info.deposited_atom_count?.toLocaleString() ?? "N/A";
